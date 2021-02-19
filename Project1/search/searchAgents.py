@@ -296,22 +296,26 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        ## Return starting position, and the 4 corners as boolean values
-        return(self.startingPosition, [False, False, False, False])
+        ## need list for visited corners 
+        visited = ()
+        notVisited = self.corners
+        ## Return starting position, and the 4 corners (x,y) pair tuples
+        # return(self.startingPosition, (visited, notVisited))
+        return(self.startingPosition, (visited, notVisited))
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-
-        # state is defined as starting position and 
-        # 4 element boolean array checking if corners have been visited. (self.startingPosition, [False, False, False, False])
-        check = state[1]
-        # recieves getStartState as input, if all check[i] are true, then return true
-        if check[0] and check[1] and check[2] and check[3]:
+        print("STATE:")
+        print(state)
+       
+        if len(state[1]) == 0:
             return True
+        return False
 
+    ## IMPORTANT FOR MOVEMENT
     def getSuccessors(self, state):
         """
         Returns successor states, the actions they require, and a cost of 1.
@@ -334,13 +338,20 @@ class CornersProblem(search.SearchProblem):
 
             "*** YOUR CODE HERE ***"
             x,y = state[0] # currentPosition is defined with state ()
+            cornersVisited = state[1][0]
+            cornersNotVisited = state[1][1]
+
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
+            nextNode = (nextx, nexty)
             hitsWall = self.walls[nextx][nexty]
 
-            # check if hits wall
-            if not hitsWall:
-                successors.append( (((nextx,nexty), self.corners), action, 1) )
+            if not hitsWall: #same up to here
+                if nextNode in cornersNotVisited: # checks 
+                    if not nextNode in cornersVisited:
+                        cornersVisited.append(nextNode) # visited in (x,y) pair
+                # successors.append(((nextNode, cornersVisited), action, 1))
+                successors.append(((nextNode, cornersNotVisited), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors

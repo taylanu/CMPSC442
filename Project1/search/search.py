@@ -16,7 +16,7 @@
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
-
+# HEY THERE BONEY
 import util
 
 class SearchProblem:
@@ -181,8 +181,6 @@ def uniformCostSearch(problem):
                 
                 if not path[0] in visited:
                     fringe.push(nextNode, cost)
-                    #fringe.push((path[0],newPlan+[path[1]]), path[2]) # this correct, just printing twice
-# (path[0], newPlan + [path[1]] )
 
 
 def nullHeuristic(state, problem=None):
@@ -192,6 +190,7 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+## Project 1 Problem 4
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
@@ -202,7 +201,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     print(heuristic(startState,problem))
     fringe.push((startState, ()), heuristic(startState, problem)) # ((state, direction), priority) should be good
     # NOTE: def push(self, item, priority):
-    solution = []
 
     while not fringe.isEmpty(): # may be issue
         currentNode = fringe.pop() # may be issue
@@ -225,12 +223,10 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 newPlan.append(path[1]) # path[2] references priority
                 nextNode = ((path[0], path[1]), path[2])
                 nextNode = (path[0], tuple(newPlan))
+                cost = problem.getCostOfActions(newPlan) + heuristic(path[0], problem)
                 
                 if not path[0] in visited:
-                    # fringe.push(nextNode, cost)
-                    print(heuristic(path[2],problem))
-                    fringe.push((path[0],newPlan+[path[1]]), heuristic(path[2],problem)) # this correct, just printing twice
-                    # (path[0], newPlan + [path[1]] )
+                    fringe.push(nextNode, cost)
 
 
 # Abbreviations

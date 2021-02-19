@@ -266,6 +266,7 @@ def euclideanHeuristic(position, problem, info={}):
 # This portion is incomplete.  Time to write code!  #
 #####################################################
 
+## Project 1 Problem 5
 class CornersProblem(search.SearchProblem):
     """
     This search problem finds paths through all four corners of a layout.
@@ -295,14 +296,21 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        ## Return starting position, and the 4 corners as boolean values
+        return(self.startingPosition, [False, False, False, False])
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        # state is defined as starting position and 
+        # 4 element boolean array checking if corners have been visited. (self.startingPosition, [False, False, False, False])
+        check = state[1]
+        # recieves getStartState as input, if all check[i] are true, then return true
+        if check[0] and check[1] and check[2] and check[3]:
+            return True
 
     def getSuccessors(self, state):
         """
@@ -325,6 +333,14 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            x,y = state[0] # currentPosition is defined with state ()
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+
+            # check if hits wall
+            if not hitsWall:
+                successors.append( (((nextx,nexty), self.corners), action, 1) )
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -342,7 +358,7 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
-
+# Make sure to have Problem 2 (BFS) complete before.
 def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.

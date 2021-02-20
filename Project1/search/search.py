@@ -16,7 +16,7 @@
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
-# HEY THERE BONEY
+
 import util
 
 class SearchProblem:
@@ -87,100 +87,92 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    ## Utilize Stack as defined in util.py
-    startState = problem.getStartState()
+    ## DFS uses Stack, defined in util.py
+    startState = problem.getStartState() # inits state as the starty state
     visited = [] # init as empty array
+
     fringe = util.Stack()
-    fringe.push((startState, ())) 
+    fringe.push((startState, ())) # fringe is defined as (state, heading) pairs
 
     while not fringe.isEmpty():
-        currentNode = fringe.pop()
-        currentState = currentNode[0] # pulls state from node
-        currentPlan = currentNode[1] # pulls plan from node
+        state, heading = fringe.pop() # pulls state, heading from node
 
         # base/end case, where if at goal state, end game, return 
-        if problem.isGoalState(currentState):
-            return list(currentPlan)
+        if problem.isGoalState(state):
+            return list(heading)
 
         # loop case, if currentstate hasnt been visited, add to visited, 
         # discover sucesssors, and generate path plan for agent
-        if not currentState in visited:
-            visited.append(currentState)
-            paths = problem.getSuccessors(currentState) # defines paths possible for agent to take (eg. North,South,East,West)
+        if not state in visited:
+            visited.append(state)
+            paths = problem.getSuccessors(state) # defines paths possible for agent to take (eg. North,South,East,West)
 
             for path in paths:
-                newPlan = list(currentPlan)
-                newPlan.append(path[1])
-                nextNode = (path[0], tuple(newPlan))
+                pathPlan = list(heading)
+                pathPlan.append(path[1])
                 
                 if not path[0] in visited:
-                    fringe.push(nextNode)
+                    fringe.push((path[0], tuple(pathPlan)))
 
 ## Project1 Question 2
-## Similar to DFS, but BFS needs Queue
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
+    ## DFS uses Queue, defined in util.py
     startState = problem.getStartState()
     visited = [] # init as empty array
+
     fringe = util.Queue()
-    fringe.push((startState, ())) 
+    fringe.push((startState, ())) # fringe is defined as (state, heading) pairs
 
     while not fringe.isEmpty():
-        currentNode = fringe.pop()
-        currentState = currentNode[0]
-        currentPlan = currentNode[1]
+        state, heading = fringe.pop()
 
-        if problem.isGoalState(currentState):
-            return list(currentPlan)
+        if problem.isGoalState(state):
+            return list(heading)
 
-        if not currentState in visited:
-            visited.append(currentState)
-            paths = problem.getSuccessors(currentState)
+        if not state in visited:
+            visited.append(state)
+            paths = problem.getSuccessors(state)
 
             for path in paths:
-                newPlan = list(currentPlan)
-                newPlan.append(path[1])
-                nextNode = (path[0], tuple(newPlan))
+                pathPlan = list(heading)
+                pathPlan.append(path[1])
 
                 if not path[0] in visited:
-                    fringe.push(nextNode)
+                    fringe.push((path[0], tuple(pathPlan)))
 
 ## Project 1 Problem 3
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    ## Utilize PriorityQueue as defined in util.py
+    ## DFS uses PriorityQueue, defined in util.py
     startState = problem.getStartState()
     visited = [] # init as empty array
+    
     fringe = util.PriorityQueue()
-    fringe.push((startState, ()), 0) # ((state, direction), priority) should be good
+    fringe.push((startState, ()), 0) # fringe node defined as ((state, direction), priority)
     # NOTE: def push(self, item, priority):
-    solution = []
 
-    while not fringe.isEmpty(): # may be issue
-        currentNode = fringe.pop() # may be issue
-        currentState = currentNode[0] # pulls state from node
-        currentPlan = currentNode[1] # pulls plan from node, (direction)
+    while not fringe.isEmpty():
+        state, heading = fringe.pop() 
 
         # base/end case, where if at goal state, end game, return 
-        if problem.isGoalState(currentState):
-            return list(currentPlan)
+        if problem.isGoalState(state):
+            return list(heading)
 
         # loop case, if currentstate hasnt been visited, add to visited, 
         # discover sucesssors, and generate path plan for agent
-        if not currentState in visited: # MAY BE ISSUE
-            visited.append(currentState)
-            paths = problem.getSuccessors(currentState) # defines paths possible for agent to take (eg. North,South,East,West)
+        if not state in visited: # MAY BE ISSUE
+            visited.append(state)
+            paths = problem.getSuccessors(state) # defines paths possible for agent to take (eg. North,South,East,West)
 
             # paths references successors (not current)
             for path in paths:
-                newPlan = list(currentPlan)
-                newPlan.append(path[1]) # path[2] references priority
-                nextNode = ((path[0], path[1]), path[2])
-                nextNode = (path[0], tuple(newPlan))
-                cost = problem.getCostOfActions(newPlan)
+                pathPlan = list(heading)
+                pathPlan.append(path[1]) # path[1] references direction
+                cost = problem.getCostOfActions(pathPlan)
                 
                 if not path[0] in visited:
-                    fringe.push(nextNode, cost)
+                    fringe.push((path[0], tuple(pathPlan)), cost)
 
 
 def nullHeuristic(state, problem=None):
@@ -193,33 +185,31 @@ def nullHeuristic(state, problem=None):
 ## Project 1 Problem 4
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    ## Utilize PriorityQueue as defined in util.py
+
+    ## A* Search uses PriorityQueue, defined in util.py
     startState = problem.getStartState()
     visited = [] # init as empty array
+
     fringe = util.PriorityQueue()
-    print(heuristic(startState,problem))
     fringe.push((startState, ()), heuristic(startState, problem)) # ((state, direction), priority) should be good
-    # NOTE: def push(self, item, priority):
+    # NOTE: push defined as push(self, item, priority). Item is the (state,direction) pair
 
     while not fringe.isEmpty(): # may be issue
-        currentNode = fringe.pop() # may be issue
-        currentState = currentNode[0] # pulls state from node
-        currentPlan = currentNode[1] # pulls plan from node, (direction)
+        state, heading = fringe.pop()
 
         # base/end case, where if at goal state, end game, return 
-        if problem.isGoalState(currentState):
-            return list(currentPlan)
+        if problem.isGoalState(state):
+            return list(heading)
 
         # loop case, if currentstate hasnt been visited, add to visited, 
         # discover sucesssors, and generate path plan for agent
-        if not currentState in visited: # MAY BE ISSUE
-            visited.append(currentState)
-            paths = problem.getSuccessors(currentState) # defines paths possible for agent to take (eg. North,South,East,West)
+        if not state in visited: 
+            visited.append(state)
+            paths = problem.getSuccessors(state) # defines paths possible for agent to take (eg. North,South,East,West)
 
             # paths references successors (not current)
             for path in paths:
-                newPlan = list(currentPlan)
+                newPlan = list(heading)
                 newPlan.append(path[1]) # path[2] references priority
                 nextNode = ((path[0], path[1]), path[2])
                 nextNode = (path[0], tuple(newPlan))

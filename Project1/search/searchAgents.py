@@ -336,15 +336,19 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
             x,y = state[0] # currentPosition is defined with state ()
             cornersVisited = state[1][0]
             cornersNotVisited = state[1][1]
 
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-            nextNode = (nextx, nexty)
+            nextPos = (nextx, nexty)
             hitsWall = self.walls[nextx][nexty]
+
+            # Start to find successors
+            if not hitsWall:
+                # First check if updated coordinates are a corner coordinate
+                if nextPos 
 
             if not hitsWall: #same up to here
                 if nextNode in cornersNotVisited: # checks 

@@ -282,13 +282,15 @@ class CornersProblem(search.SearchProblem):
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
         self.corners = ((1,1), (1,top), (right, 1), (right, top))
+        self.cornersState = [False, False, False, False] #initalize all corners as unintialized 
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
                 print('Warning: no food in corner ' + str(corner))
+
+        self.visited = {} # initialize visited nodes as empty dict
+        self.visitedList = []
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
-        # Please add any code here which you would like to use
-        # in initializing the problem
-        "*** YOUR CODE HERE ***"
+
 
     def getStartState(self):
         """
@@ -308,10 +310,10 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        print("STATE:")
-        print(state)
+        # print("STATE:")
+        # print(state)
        
-        if len(state[1]) == 0:
+        if item in state[1]:
             return True
         return False
 
@@ -337,25 +339,23 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             x,y = state[0] # currentPosition is defined with state ()
-            cornersVisited = state[1][0]
-            cornersNotVisited = state[1][1]
+            goal = state[1][:] # scans list of visited corner
 
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             nextPos = (nextx, nexty)
             hitsWall = self.walls[nextx][nexty]
+            corners = self.corners
 
             # Start to find successors
             if not hitsWall:
-                # First check if updated coordinates are a corner coordinate
-                if nextPos 
+                # First check if updated coordinates are a corner coordinate, set to True if position is a corner
+                if nextPos in corners:
+                    goal[corners.index(nextPos)] = True 
 
-            if not hitsWall: #same up to here
-                if nextNode in cornersNotVisited: # checks 
-                    if not nextNode in cornersVisited:
-                        cornersVisited.append(nextNode) # visited in (x,y) pair
-                # successors.append(((nextNode, cornersVisited), action, 1))
-                successors.append(((nextNode, cornersNotVisited), action, 1))
+                # Else, if the coordinates are not a corner, append state to successors, continue
+                nextState = (nextPos, 1)
+                successors.append((nextState, action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors

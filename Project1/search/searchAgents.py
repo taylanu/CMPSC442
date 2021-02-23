@@ -200,7 +200,7 @@ class PositionSearchProblem(search.SearchProblem):
             if not self.walls[nextx][nexty]:
                 nextState = (nextx, nexty)
                 cost = self.costFn(nextState)
-                successors.append( ( nextState, action, cost) )
+                successors.append((nextState,action,cost))
 
         # Bookkeeping for display purposes
         self._expanded += 1 # DO NOT CHANGE
@@ -266,7 +266,6 @@ def euclideanHeuristic(position, problem, info={}):
 # This portion is incomplete.  Time to write code!  #
 #####################################################
 
-## Project 1 Problem 5
 class CornersProblem(search.SearchProblem):
     """
     This search problem finds paths through all four corners of a layout.
@@ -282,42 +281,46 @@ class CornersProblem(search.SearchProblem):
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
         self.corners = ((1,1), (1,top), (right, 1), (right, top))
-        self.cornersState = [False, False, False, False] #initalize all corners as unintialized 
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
                 print('Warning: no food in corner ' + str(corner))
-
-        self.visited = {} # initialize visited nodes as empty dict
-        self.visitedList = []
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
-
+        # Please add any code here which you would like to use
+        # in initializing the problem
 
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        ## need list for visited corners 
-        visited = ()
-        notVisited = self.corners
-        ## Return starting position, and the 4 corners (x,y) pair tuples
-        # return(self.startingPosition, (visited, notVisited))
-        return(self.startingPosition, (visited, notVisited))
+        # For my approach to changing the game state, I will only store Pac-Man's position and the location
+        # of the corners in the map
+
+        corners = []
+        state = self.startingPosition
+
+        return(state, corners)
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
-        # print("STATE:")
-        # print(state)
-       
-        if item in state[1]:
-            return True
-        return False
+        # For my approach to finding if the current state is the goal state, I will check if all four corners
+        # have been traversed by storing a new list and checking if its length is 4 for all the corners
 
-    ## IMPORTANT FOR MOVEMENT
+        spot = state[0]
+        traversed = state[1]
+        corners = self.corners
+
+        if spot in corners: 
+            if spot not in traversed:
+                traversed.append(spot)
+
+        if len(traversed) == 4:
+            return True
+        else:
+            return False
+
     def getSuccessors(self, state):
         """
         Returns successor states, the actions they require, and a cost of 1.
@@ -337,25 +340,24 @@ class CornersProblem(search.SearchProblem):
             #   dx, dy = Actions.directionToVector(action)
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
-
-            x,y = state[0] # currentPosition is defined with state ()
-            goal = state[1][:] # scans list of visited corner
-
+        
+            # For my approach to finding successors, I began with the given code and checking if the next
+            # state is not a wall, within the corners list, and not already in the notTraversed list.
+            # Then, I use the algorithm provided to compute the nextNode and append it to both lists.
+            x,y = state[0]
+            traversed = state[1]
+            nextTraversed = traversed[:]
+            corners = self.corners
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
-            nextPos = (nextx, nexty)
+            nextNode = (nextx, nexty)
             hitsWall = self.walls[nextx][nexty]
-            corners = self.corners
 
-            # Start to find successors
             if not hitsWall:
-                # First check if updated coordinates are a corner coordinate, set to True if position is a corner
-                if nextPos in corners:
-                    goal[corners.index(nextPos)] = True 
-
-                # Else, if the coordinates are not a corner, append state to successors, continue
-                nextState = (nextPos, 1)
-                successors.append((nextState, action, 1))
+                if nextNode in corners:
+                    if nextNode not in nextTraversed:
+                        nextTraversed.append(nextNode)
+                successors.append(((nextNode, nextTraversed), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -373,7 +375,6 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
-# Make sure to have Problem 2 (BFS) complete before.
 def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
@@ -387,11 +388,54 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
+    # For my approach to the corners heuristic, I begin by creating a new list for all of the corners that have not
+    # been visited yet. I initially wrote a function to calculate the maximum possible cost of Pac-Man to the furthest
+    # food dot in order to compare and find the minimum cost, but it did not work as anticipated, so instead I hard set
+    # the mincost to be 0 within my while loop. Within the loop, I utilize the manhattan distance from Pac-Man to the 
+    # closest corner and add that to the return heuristic to keep the algorithm consistent and admissible.
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    position = state[0]
+    traversed = state[1]
+    notTraversed = []
+    heuristic = 0
+    
+
+    for spot in corners:
+        if spot not in traversed:
+            notTraversed.append(spot)
+    '''
+    maxcost = 0
+    mincost = 0
+    maxList = []
+    for spot in notTraversed:
+        startx, starty = position
+        x, y = spot
+        xdiff = abs(startx - x)
+        ydiff = abs(starty - y)
+        maxcost = util.manhattanDistance(position, spot)
+        maxList.append(maxcost)
+    
+    if len(maxList) == 0:
+        mincost = 0
+    else:
+        mincost = max(maxList)
+    '''
+    while len(notTraversed):
+        mincost = 0
+        mincorner = position
+        for corner in notTraversed:
+            temp = util.manhattanDistance(position, corner)
+            if temp <= mincost or mincost == 0:
+                mincost = util.manhattanDistance(position, corner)
+                mincorner = corner
+
+        heuristic += mincost
+        position = mincorner
+        notTraversed.remove(mincorner)
+
+    return heuristic
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -483,9 +527,75 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
+    # For my approach to the food heuristic function, I began the same way as I solved the corners problem, but this time I
+    # utilized the .asList() function given by the hint to make the food grid into a list of coordinates which I added to
+    # a separate list. I added the same cost algorithm I attempted to use in the pervious problem to set the maximum possible
+    # cost to the mincost variable for comparison (except this time it works correctly). Finally, I have 2 loops which the
+    # first finds the smallest possible distance from the start position to the closest food dot and adds that to the heuristic.
+    # The second loop then takes that closest food and computes maximum the distance to the next food in the list that I
+    # store the food coordinates in and later adds it to the heuristic. In doing so, the heuristic is consistent and admissible.
+    # Additionally, I left my other working code commented out because it had a similar approach except I was expanding many
+    # more nodes because I check the maximum distance for each minimum food dot calculated through the iterations.
+
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    allFood = []
+    start = problem.startingGameState
+    foodList = foodGrid.asList()
+    heuristic = 0
+
+    if not foodList:
+        return 0
+
+    for foodPos in foodList:
+        if foodPos not in allFood:
+            allFood.append(foodPos)
+
+    maxcost = 0
+    maxcost1 = 0
+    maxList = []
+
+    for i in allFood:
+        startx, starty = position
+        x, y = i
+        xdiff = abs(startx - x)
+        ydiff = abs(starty - y)
+        maxcost = mazeDistance(position, i, start)
+        maxList.append(maxcost)
+
+    maxcost = max(maxList)
+    mincost = maxcost
+
+    minFood = position
+
+    for food in allFood:
+        check = mazeDistance(position, food, start)
+        if check <= mincost:
+            mincost = mazeDistance(position, food, start)
+            minFood = food
+    heuristic += mincost
+
+    for food in allFood:
+        check = mazeDistance(minFood, food, start)
+        if check >= maxcost1:
+            maxcost1 = mazeDistance(minFood, food, start)
+    heuristic += maxcost1
+    return heuristic
+
+    '''
+    for food in allFood:
+        temp = mazeDistance(position, food, start)
+        if temp < mincost:
+            mincost = mazeDistance(position, food, start)
+            minFood = food
+            if mazeDistance(minFood, food, start) > maxcost1:
+                maxcost1 = mazeDistance(minFood, food, start)
+    heuristic += mincost
+    heuristic += maxcost1
+    return heuristic
+    '''
+
+    
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -509,14 +619,49 @@ class ClosestDotSearchAgent(SearchAgent):
         Returns a path (a list of actions) to the closest dot, starting from
         gameState.
         """
+        # For my approach to getting a path to the closest dot, I followed the same exact approach in my food heuristic function
+        # I created a new list to store all the food dots in the grid and I computed the maximum possible cost to reach one
+        # which I set as the mincost variable used later on for comparison. I then iterate through the food list and compute
+        # the closest food with the maze distance as used prior. I continue this computation for all of the food dot coordinates
+        # in the list and remove them as needed. Finally, I run the usc search on the problem from the start position to the 
+        # closest food I calculated (added the warn falg to be false because I was getting some warnings).
         # Here are some useful elements of the startState
         startPosition = gameState.getPacmanPosition()
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        foodList = food.asList()
+        allFood = []
+
+        for foodPos in foodList:
+            if foodPos not in allFood:
+                allFood.append(foodPos)
+
+        maxcost = 0
+        maxList = []
+
+        for i in allFood:
+            startx, starty = startPosition
+            x, y = i
+            xdiff = abs(startx - x)
+            ydiff = abs(starty - y)
+            maxcost = mazeDistance(startPosition, i, gameState)
+            maxList.append(maxcost)
+
+        maxcost = max(maxList)
+        mincost = maxcost
+
+        while len(allFood):
+            for food in allFood:
+                temp = mazeDistance(startPosition, food, gameState)
+                if temp <= mincost:
+                    mincost = mazeDistance(startPosition, food, gameState)
+                    closestFood = food
+                allFood.remove(food)
+
+        return search.uniformCostSearch(PositionSearchProblem(gameState, start = startPosition, goal = closestFood, warn = False))
+        
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -549,10 +694,13 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         The state is Pacman's position. Fill this in with a goal test that will
         complete the problem definition.
         """
+        # For this function, I simply check if the position given is the same as any of the coordinates
+        # in the list of food coordinates.
         x,y = state
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        food = self.food.asList()
+        if (x, y) in food:
+            return True
+        return False
 
 def mazeDistance(point1, point2, gameState):
     """

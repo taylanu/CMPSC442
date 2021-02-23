@@ -120,6 +120,7 @@ def breadthFirstSearch(problem):
     ## DFS uses Queue, defined in util.py
     startState = problem.getStartState()
     visited = [] # init as empty array
+    print(startState)
 
     fringe = util.Queue()
     fringe.push((startState, ())) # fringe is defined as (state, heading) pairs

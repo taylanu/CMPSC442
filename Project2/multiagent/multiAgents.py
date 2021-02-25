@@ -74,6 +74,13 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
+        #print(successorGameState) # Displays ASCII version of the game display
+        #print(newPos) # Displays the x,y coordinates of the next pacman position
+        #print(str(newFood) + "\n") # displays game board array of boolean (T/F) of food on board.
+        #print(newGhostStates) #returns an AgentState object for each ghost.
+        #print(newScaredTimes) # if a super pellet is collected, will start a 40 frame timer, counting down by frame until ghosts are no longer scared
+
+        
         return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):

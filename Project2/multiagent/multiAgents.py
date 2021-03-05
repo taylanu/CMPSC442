@@ -18,6 +18,7 @@ import random, util
 
 from game import Agent
 
+# Project2 Q1
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -51,6 +52,7 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
+    # Project2 Q1: Complete Evaluation Function
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
@@ -73,15 +75,51 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
         #print(successorGameState) # Displays ASCII version of the game display
         #print(newPos) # Displays the x,y coordinates of the next pacman position
         #print(str(newFood) + "\n") # displays game board array of boolean (T/F) of food on board.
         #print(newGhostStates) #returns an AgentState object for each ghost.
         #print(newScaredTimes) # if a super pellet is collected, will start a 40 frame timer, counting down by frame until ghosts are no longer scared
 
+        "*** YOUR CODE HERE ***"
+
+        # Initialize variables and lists to use in evaluation
+        currentScore = scoreEvaluationFunction(currentGameState)
+        pellets = []
+        pelletLocatiions =[]
+        scaredGhosts=[]                                                        
+        activeGhosts=[]
+        minScared=1000
+        minActive=1000
+
+        food=newFood.asList()
         
-        return successorGameState.getScore()
+        if successorGameState.isWin():                                          #if next state wins
+            return float("inf") # float("inf") is unbounded upper value to compare against.
+
+        # For each food pellet, update the agent's distance from the pellet
+        for i in food:                                                          #append all food positions and keep in closestfood the one closest
+            pelletLocatiions.append(util.manhattanDistance(newPos, i))          #to pacman's position
+        closestfood = min(pelletLocatiions)
+        
+        # For each Ghost, checks agent position vs ghost position, and updates scared/active ghost lists.
+        for i in newGhostStates:
+            if newPos==i.getPosition(): # If agent is in position of ghost, agent loses game, else continues.
+                return -1;
+            else:
+                if i.scaredTimer: # If Ghost in scared state, update Ghost's distance to player.
+                    scaredGhosts.append(util.manhattanDistance(newPos, i.getPosition()))
+                else: # If Ghost in active state, update Ghost's distance to player.
+                    activeGhosts.append(util.manhattanDistance(newPos, i.getPosition()))
+        
+        if (len(scaredGhosts) > 0):                                                   #if there are any keep the minimum distances from them
+            minScared=min(scaredGhosts)
+        if (len(activeGhosts) > 0):                                                      #in any other case, keep the default values
+            minActive=min(activeGhosts)
+
+        # score found by taking current score, and the sum of the reciprocal of 
+        score=currentScore + (1.0/closestfood) + (1.0/minScared) - (1.0/minActive) +(1.0/len(food)) + len(currentGameState.getCapsules())  #calculate scores with values that prove winning(I found that of all the ones I tries, 1.0 works best)
+        return score + successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -92,6 +130,7 @@ def scoreEvaluationFunction(currentGameState):
     (not reflex agents).
     """
     return currentGameState.getScore()
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -113,6 +152,7 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
+# Project2 Q2
 class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)

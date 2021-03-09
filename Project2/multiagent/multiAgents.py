@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -14,11 +14,14 @@
 
 from util import manhattanDistance
 from game import Directions
-import random, util
+import random
+import util
 
 from game import Agent
 
 # Project2 Q1
+
+
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -28,7 +31,6 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
-
 
     def getAction(self, gameState):
         """
@@ -43,13 +45,15 @@ class ReflexAgent(Agent):
         legalMoves = gameState.getLegalActions()
 
         # Choose one of the best actions
-        scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
+        scores = [self.evaluationFunction(
+            gameState, action) for action in legalMoves]
         bestScore = max(scores)
-        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        bestIndices = [index for index in range(
+            len(scores)) if scores[index] == bestScore]
+        # Pick randomly among the best
+        chosenIndex = random.choice(bestIndices)
 
         "Add more of your code here if you want to"
-
         return legalMoves[chosenIndex]
 
     # Project2 Q1: Complete Evaluation Function
@@ -73,53 +77,64 @@ class ReflexAgent(Agent):
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        newScaredTimes = [
+            ghostState.scaredTimer for ghostState in newGhostStates]
 
-        #print(successorGameState) # Displays ASCII version of the game display
-        #print(newPos) # Displays the x,y coordinates of the next pacman position
-        #print(str(newFood) + "\n") # displays game board array of boolean (T/F) of food on board.
-        #print(newGhostStates) #returns an AgentState object for each ghost.
-        #print(newScaredTimes) # if a super pellet is collected, will start a 40 frame timer, counting down by frame until ghosts are no longer scared
+        # print(successorGameState) # Displays ASCII version of the game display
+        # print(newPos) # Displays the x,y coordinates of the next pacman position
+        # print(str(newFood) + "\n") # displays game board array of boolean (T/F) of food on board.
+        # print(newGhostStates) #returns an AgentState object for each ghost.
+        # print(newScaredTimes) # if a super pellet is collected, will start a 40 frame timer, counting down by frame until ghosts are no longer scared
 
         "*** YOUR CODE HERE ***"
 
         # Initialize variables and lists to use in evaluation
         currentScore = scoreEvaluationFunction(currentGameState)
         pellets = []
-        pelletLocatiions =[]
-        scaredGhosts=[]                                                        
-        activeGhosts=[]
-        minScared=1000
-        minActive=1000
+        pelletLocatiions = []
+        scaredGhosts = []
+        activeGhosts = []
+        minScared = 1000
+        minActive = 1000
 
-        food=newFood.asList()
-        
-        if successorGameState.isWin():                                          #if next state wins
-            return float("inf") # float("inf") is unbounded upper value to compare against.
+        food = newFood.asList()
+
+        # Checks if the next gamestate is a win
+        if successorGameState.isWin():
+            # float("inf") is unbounded upper value to compare against.
+            return float("inf")
 
         # For each food pellet, update the agent's distance from the pellet
-        for i in food:                                                          #append all food positions and keep in closestfood the one closest
-            pelletLocatiions.append(util.manhattanDistance(newPos, i))          #to pacman's position
+        for i in food:  # append all food positions and keep in closestfood the one closest
+            pelletLocatiions.append(util.manhattanDistance(
+                newPos, i))  # to pacman's position
         closestfood = min(pelletLocatiions)
-        
+
         # For each Ghost, checks agent position vs ghost position, and updates scared/active ghost lists.
         for i in newGhostStates:
-            if newPos==i.getPosition(): # If agent is in position of ghost, agent loses game, else continues.
-                return -1;
+            # If agent is in position of ghost, agent loses game, else continues.
+            if newPos == i.getPosition():
+                return -1
             else:
-                if i.scaredTimer: # If Ghost in scared state, update Ghost's distance to player.
-                    scaredGhosts.append(util.manhattanDistance(newPos, i.getPosition()))
-                else: # If Ghost in active state, update Ghost's distance to player.
-                    activeGhosts.append(util.manhattanDistance(newPos, i.getPosition()))
-        
-        if (len(scaredGhosts) > 0):                                                   #if there are any keep the minimum distances from them
-            minScared=min(scaredGhosts)
-        if (len(activeGhosts) > 0):                                                      #in any other case, keep the default values
-            minActive=min(activeGhosts)
+                if i.scaredTimer:  # If Ghost in scared state, update Ghost's distance to player.
+                    scaredGhosts.append(
+                        util.manhattanDistance(newPos, i.getPosition()))
+                else:  # If Ghost in active state, update Ghost's distance to player.
+                    activeGhosts.append(
+                        util.manhattanDistance(newPos, i.getPosition()))
 
-        # score found by taking current score, and the sum of the reciprocal of 
-        score=currentScore + (1.0/closestfood) + (1.0/minScared) - (1.0/minActive) +(1.0/len(food)) + len(currentGameState.getCapsules())  #calculate scores with values that prove winning(I found that of all the ones I tries, 1.0 works best)
+        if (len(scaredGhosts) > 0):  # if there are any keep the minimum distances from them
+            minScared = min(scaredGhosts)
+
+        if (len(activeGhosts) > 0):  # in any other case, keep the default values
+            minActive = min(activeGhosts)
+
+        # score found by taking current score, and the sum of the reciprocal of
+        # calculate scores with values that prove winning(I found that of all the ones I tries, 1.0 works best)
+        score = currentScore + (1.0/closestfood) + (1.0/minScared) - (
+            1.0/minActive) + (1.0/len(food)) + len(currentGameState.getCapsules())
         return score + successorGameState.getScore()
+
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -147,12 +162,14 @@ class MultiAgentSearchAgent(Agent):
     is another abstract class.
     """
 
-    def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = 0 # Pacman is always agent index 0
+    def __init__(self, evalFn='scoreEvaluationFunction', depth='2'):
+        self.index = 0  # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
 # Project2 Q2
+
+
 class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
@@ -174,6 +191,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         gameState.getNumAgents():
         Returns the total number of agents in the game
+        Note: Includes pacman agent AND ghost agents.
 
         gameState.isWin():
         Returns whether or not the game state is a winning state
@@ -181,8 +199,72 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Implement Minimax Algorithm:
+
+        # Initialize variables and lists to use in getAction
+        legalActions = gameState.getLegalActions()
+        print(legalActions)
+        ghosts = gameState.getNumAgents() - 1  # all agents except pacman agent
+        print(ghosts)
+        maxAction = []  # actions resulting in max utility
+        score = -float("inf")  # initialize score at 0
+
+        # Generate successor gamestates for each legal move.
+        for i in legalActions:
+            successor = gameState.generateSuccessor(0, i)
+            tempScore = score  # save score in temp variable
+            # Chooses action with highest utility
+            score = max(score, self.minValue(successor, self.depth, 1, ghosts))
+            if score > tempScore:
+                # if the action i returns a max score, add to maxActions array.
+                maxAction.append(i)
+
+        if score == -float("inf"):
+            return
+        # Return maxActions for agents to take
+        while len(maxAction) != 0:
+            return maxAction.pop()
+
+    # Define maxValue function
+    def maxValue(self, gameState, depth, agents):
+        # Define base cases, which will end evaluation
+        if(gameState.isWin() or gameState.isLose() or depth == 0):
+            return self.evaluationFunction(gameState)
+
+        score = -(float("inf"))
+        legalActions = gameState.getLegalActions()
+        # Case1, Generate successors for each legal move, keeping max score from min value of score and min value of children
+        for i in legalActions:
+            successor = gameState.generateSuccessor(0, i)
+            # Determines best score from min value of score and min values of children
+            score = max(score, self.minValue(successor, depth, 1, agents))
+        return score
+
+    # Define minValue function
+    def minValue(self, gameState, depth, agents, ghosts):
+        # Define base cases, which will end evaluation
+        if(gameState.isWin() or gameState.isLose() or depth == 0):
+            return self.evaluationFunction(gameState)
+        score = (float("inf"))
+        legalactions = gameState.getLegalActions(agents)
+
+        # Case1, where only agent playing is Pacman. (base)
+        if agents == ghosts:
+            for i in legalactions:
+                successor = gameState.generateSuccessor(agents, i)
+                # Determines best score from min value of score and max values of children
+                score = min(score, self.maxValue(
+                    successor, depth-1, ghosts))
+        # Case2, where ghosts are playing alongside Pacman
+        else:
+            for i in legalactions:
+                successor = gameState.generateSuccessor(agents, i)
+                # Determines best score from min value of score and min values of children
+                score = min(score, self.minValue(
+                    successor, depth, agents+1, ghosts))
+        # Return best score determined by maxValue function
+        return score
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -195,6 +277,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -211,6 +294,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
+
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
@@ -220,6 +304,7 @@ def betterEvaluationFunction(currentGameState):
     """
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 # Abbreviation
 better = betterEvaluationFunction

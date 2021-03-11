@@ -203,10 +203,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         # Initialize variables and lists to use in getAction
         legalActions = gameState.getLegalActions()
-        print(legalActions)
+        # print(legalActions)
         ghosts = gameState.getNumAgents() - 1  # all agents except pacman agent
-        print(ghosts)
-        maxAction = []  # actions resulting in max utility
+        # print(ghosts)
+        maxActions = []  # actions resulting in max utility
         score = -float("inf")  # initialize score at 0
 
         # Generate successor gamestates for each legal move.
@@ -217,13 +217,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
             score = max(score, self.minValue(successor, self.depth, 1, ghosts))
             if score > tempScore:
                 # if the action i returns a max score, add to maxActions array.
-                maxAction.append(i)
+                maxActions.append(i)
 
         if score == -float("inf"):
             return
         # Return maxActions for agents to take
-        while len(maxAction) != 0:
-            return maxAction.pop()
+        while len(maxActions) != 0:
+            return maxActions.pop()
 
     # Define maxValue function
     def maxValue(self, gameState, depth, agents):
@@ -265,7 +265,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # Return best score determined by maxValue function
         return score
 
-
+# Project2 Q3
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
@@ -275,10 +275,74 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        # Initialize variables and lists to use in getAction
+        legalActions = gameState.getLegalActions()
+        ghosts = gameState.getNumAgents() - 1  # all agents except pacman agent
+        maxActions = []  # actions resulting in max utility
+        score = -float("inf")  # initialize score at 0
+        alpha = -float("inf")
+        beta = -float("inf")
+
+        # Generate successor gamestates for each legal move.
+        for i in legalActions:
+            successors=gameState.generateSuccessor(0,i)
+            temp=score
+            # Score calculated by taking max of min child vals.
+            score=max(score, self.minAlphaBeta(successors, self.depth, 1, ghosts, alpha, beta))
+
+            # Store and save actions with max utility
+            if score>temp:
+                maxActions.append(i)
+            if score>beta:
+                return score
+            alpha=max(alpha, score)
+        if score==-(float("inf")):
+            return
+
+        # Return all maxactions. each value
+        while len(maxActions) > 0:
+            return maxActions.pop()
+
+    def maxAlphaBeta(self, gameState, depth, ghosts, alpha, beta):
+        #base case,
+        if gameState.isWin() or gameState.isLose() or depth==0:
+            return self.evaluationFunction(gameState)
+        v=-(float("inf"))       #v is score, but in Berkeley's picture->v
+        legalActions=gameState.getLegalActions(0)
+        for i in legalActions:
+            successor=gameState.generateSuccessor(0,i)                                      #Berkeley's picture and Mr.Koubarakis' algorithm
+            v=max(v, self.minAlphaBeta(successor, depth, 1, ghosts, alpha, beta))
+            if v>beta:
+                return v
+            alpha=max(alpha, v)
+        return v
+
+    def minAlphaBeta(self, gameState, depth, agents, ghosts, alpha, beta):
+        #base case
+        v=float("inf")
+        legalActions=gameState.getLegalActions(agents)
+        if gameState.isWin() or gameState.isLose() or depth==0:
+            return self.evaluationFunction(gameState)
+        if agents==ghosts:
+            for i in legalActions:
+                successors=gameState.generateSuccessor(agents, i)
+                v=min(v, self.maxAlphaBeta(successors, depth-1, ghosts, alpha, beta))
+                if v<alpha:                                                                 #return-start recursion backwards
+                    return v
+                beta=min(beta, v)
+        else:
+            for i in legalActions:
+                successors=gameState.generateSuccessor(agents, i)
+                v=min(v, self.minAlphaBeta(successors, depth, agents+1, ghosts, alpha, beta))
+                if v<alpha:
+                    break
+                beta=min(beta, v)
+        return v
 
 
+
+#Project2 Q4
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
@@ -291,9 +355,51 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Initialize variables and lists to use in getAction
+        legalActions = gameState.getLegalActions()
+        ghosts = gameState.getNumAgents() - 1  # all agents except pacman agent
+        maxActions = []  # actions resulting in max utility
+        score = -float("inf")  # initialize score at 0
 
+        #Generate Successors for each legalAction
+        for i in legalActions:
+            successors = gameState.generateSuccessor(0,i)
+            temp = score
+
+            #same thing, with only difference being, expected versus minimum
+            score=max(score, self.expectiMin(successors, self.depth, 1, ghosts))
+            if score>temp :
+                maxActions.append(i)
+        while len(maxActions)!=0:
+            return maxActions.pop()
+
+    # Define ExpectiMax helper function to find max nodes
+    def expectiMax(self, gameState, depth, ghosts):
+        score=-(float("inf"))
+        legalActions=gameState.getLegalActions(0)
+        if gameState.isWin() or gameState.isLose() or depth==0:
+            return self.evaluationFunction(gameState)
+        for i in legalActions:
+            successors=gameState.generateSuccessor(0,i)
+            score=max(score,self.expectiMin(successors,depth,1,ghosts))
+        return score
+
+    # Define ExpectiMax helper function to find max nodes
+    def expectiMin(self,gameState, depth, agents, ghosts):
+        score=0;
+        legalActions=gameState.getLegalActions(agents)
+        if gameState.isWin() or gameState.isLose() or depth==0:
+            return self.evaluationFunction(gameState)
+        if agents==ghosts:
+            for i in legalActions:
+                successors=gameState.generateSuccessor(agents, i)
+                score+=self.expectiMax(successors,depth-1,ghosts)
+
+        else:
+            for i in legalActions:
+                successors=gameState.generateSuccessor(agents, i)
+                score+=self.expectiMin(successors, depth, agents+1, ghosts)
+        return score
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -302,8 +408,45 @@ def betterEvaluationFunction(currentGameState):
 
     DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    currPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    currScore=scoreEvaluationFunction(currentGameState)
+    food=[]
+    f=[]
+    food_coordinates=[]
+    scaredghosts=[]
+    badghosts=[]
+    minscared=1000
+    minbad=1000
+    food=newFood.asList()
+    if currentGameState.isWin():                        #base cases
+        return float("inf")
+    if currentGameState.isLose():
+        return -float("inf")
+    closestfood=float("inf")
+    for i in food:
+        f.append(util.manhattanDistance(i, currPos))
+    minfood=min(f)                                      #calculate position of closest food piece
+    if minfood<closestfood:
+        closestfood=minfood
+    food_coordinates.append(closestfood)
+    f=food_coordinates.pop()                            #get closest food piecce
+    ghosts=currentGameState.getNumAgents()-1
+    for i in newGhostStates:                            #for every ghost state
+        if currPos==i.getPosition():                    #if eaten in next move return error value
+            return -1;
+        else:
+            if i.scaredTimer:                           #same as Problem 1
+                scaredghosts.append(util.manhattanDistance(currPos, i.getPosition()))
+            else:
+                badghosts.append(util.manhattanDistance(currPos, i.getPosition()))
+    if len(scaredghosts):
+        minscared=min(scaredghosts)
+    if len(badghosts):
+        minbad=min(badghosts)                           #calculate score with different coefficients
+    endScore=currScore-(0.5*f) - (0.5*minscared)+(5.0*minbad)-(0.5*len(food)) -(0.5*len(currentGameState.getCapsules()))
+    return endScore
 
 
 # Abbreviation

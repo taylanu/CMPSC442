@@ -73,25 +73,16 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
-        successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
-        newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [
-            ghostState.scaredTimer for ghostState in newGhostStates]
-
-        # print(successorGameState) # Displays ASCII version of the game display
-        # print(newPos) # Displays the x,y coordinates of the next pacman position
-        # print(str(newFood) + "\n") # displays game board array of boolean (T/F) of food on board.
-        # print(newGhostStates) #returns an AgentState object for each ghost.
-        # print(newScaredTimes) # if a super pellet is collected, will start a 40 frame timer, counting down by frame until ghosts are no longer scared
-
-        "*** YOUR CODE HERE ***"
+        successorGameState = currentGameState.generatePacmanSuccessor(action) # Displays ASCII version of the game display
+        newPos = successorGameState.getPacmanPosition() # Displays the x,y coordinates of the next pacman position
+        newFood = successorGameState.getFood() # displays game board array of boolean (T/F) of food on board.
+        newGhostStates = successorGameState.getGhostStates() #returns an AgentState object for each ghost.
+        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates] # if a super pellet is collected, will start a 40 frame timer, counting down by frame until ghosts are no longer scared
 
         # Initialize variables and lists to use in evaluation
         currentScore = scoreEvaluationFunction(currentGameState)
         pellets = []
-        pelletLocatiions = []
+        pelletLocations = []
         scaredGhosts = []
         activeGhosts = []
         minScared = 1000
@@ -106,9 +97,9 @@ class ReflexAgent(Agent):
 
         # For each food pellet, update the agent's distance from the pellet
         for i in food:  # append all food positions and keep in closestfood the one closest
-            pelletLocatiions.append(util.manhattanDistance(
+            pelletLocations.append(util.manhattanDistance(
                 newPos, i))  # to pacman's position
-        closestfood = min(pelletLocatiions)
+        closestPellet = min(pelletLocations)
 
         # For each Ghost, checks agent position vs ghost position, and updates scared/active ghost lists.
         for i in newGhostStates:
@@ -129,10 +120,8 @@ class ReflexAgent(Agent):
         if (len(activeGhosts) > 0):  # in any other case, keep the default values
             minActive = min(activeGhosts)
 
-        # score found by taking current score, and the sum of the reciprocal of
-        # calculate scores with values that prove winning(I found that of all the ones I tries, 1.0 works best)
-        score = currentScore + (1.0/closestfood) + (1.0/minScared) - (
-            1.0/minActive) + (1.0/len(food)) + len(currentGameState.getCapsules())
+        # score found by taking current score, and the sum of the reciprocal of each factor
+        score = currentScore + (1.0/closestPellet) + (1.0/minScared) - (1.0/minActive) + (1.0/len(food)) + len(currentGameState.getCapsules())
         return score + successorGameState.getScore()
 
 
@@ -168,8 +157,6 @@ class MultiAgentSearchAgent(Agent):
         self.depth = int(depth)
 
 # Project2 Q2
-
-
 class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
@@ -280,9 +267,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         legalActions = gameState.getLegalActions()
         ghosts = gameState.getNumAgents() - 1  # all agents except pacman agent
         maxActions = []  # actions resulting in max utility
-        score = -float("inf")  # initialize score at 0
+        score = -float("inf")  # initialize score, a, b at neg infinity for comparison
         alpha = -float("inf")
-        beta = -float("inf")
+        beta = float("inf")
 
         # Generate successor gamestates for each legal move.
         for i in legalActions:
@@ -301,14 +288,14 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return
 
         # Return all maxactions. each value
-        while len(maxActions) > 0:
+        while len(maxActions) != 0: # or !=0
             return maxActions.pop()
 
     def maxAlphaBeta(self, gameState, depth, ghosts, alpha, beta):
         #base case,
         if gameState.isWin() or gameState.isLose() or depth==0:
             return self.evaluationFunction(gameState)
-        v=-(float("inf"))       #v is score, but in Berkeley's picture->v
+        v = -(float("inf"))       #v is score, but in Berkeley's picture->v
         legalActions=gameState.getLegalActions(0)
         for i in legalActions:
             successor=gameState.generateSuccessor(0,i)                                      #Berkeley's picture and Mr.Koubarakis' algorithm

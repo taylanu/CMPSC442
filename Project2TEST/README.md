@@ -10,10 +10,6 @@ If you run python -V, should see Python 3.6.x
 1. source deactivate
 If you run python -V, should see Python 3.6.x
 
-
-### Question 5:
-
-
 ## COMMANDS TO RUN:
 ### Question1 Reflex
 - python autograder.py -q q1

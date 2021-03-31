@@ -10,6 +10,14 @@ valueIterationAgents.py
 qlearningAgents.py
 analysis.py
 
+# TODO:
+- Q5 (Come back to it)
+- Q6 (done)
+- Q7
+- Q8
+- Q9
+- Q10
+
 ## Activate Conda Environment
 1. conda create --name <env-name> python=3.6
 2. source activate <env-name>
@@ -33,6 +41,42 @@ python gridworld.py -a value -i 5
 
 ## Question 2:
 python gridworld.py -a value -i 100 -g BridgeGrid --discount 0.9 --noise 0.2
+
+## Question 3:
+python autograder.py -q q3
+
+## Question 4:
+python autograder.py -q q4
+python gridworld.py -a asynchvalue -i 1000 -k 10
+
+## Question 5:
+python autograder.py -q q5
+python gridworld.py -a priosweepvalue -i 1000
+
+## Question6:
+python autograder.py -q q6
+python gridworld.py -a q -k 5 -m
+
+## Question7:
+python gridworld.py -a q -k 100
+python gridworld.py -a q -k 100 --noise 0.0 -e 0.1
+python gridworld.py -a q -k 100 --noise 0.0 -e 0.9
+python autograder.py -q q7
+python crawler.py
+
+## Question8:
+python gridworld.py -a q -k 50 -n 0 -g BridgeGrid -e 1
+python autograder.py -q q8
+
+## Question9:
+python pacman.py -p PacmanQAgent -x 2000 -n 2010 -l smallGrid
+python autograder.py -q q9
+
+## Question10:
+python pacman.py -p ApproximateQAgent -x 2000 -n 2010 -l smallGrid
+python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -l mediumGrid
+python pacman.py -p ApproximateQAgent -a extractor=SimpleExtractor -x 50 -n 60 -l mediumClassic
+python autograder.py -q q10
 
 #### MDP FUNCTIONS DEFINED:
 mdp.getStates()

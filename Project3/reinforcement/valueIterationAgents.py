@@ -131,8 +131,6 @@ class ValueIterationAgent(ValueEstimationAgent):
         return self.computeQValueFromValues(state, action)
 
 # Project3 Q4
-
-
 class AsynchronousValueIterationAgent(ValueIterationAgent):
     """
         * Please read learningAgents.py before reading this.*
@@ -196,4 +194,42 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         ValueIterationAgent.__init__(self, mdp, discount, iterations)
 
     def runValueIteration(self):
-        return util.raiseNotDefined()
+        # Initialize and fill dict of each state in mdp
+        predecessors = {}
+        for state in self.mdp.getStates():
+            predecessors[state] = set()
+
+###
+#  def runValueIteration(self):
+#         #create a dictionary for every states
+#         #initialize the of the dictionary, such that {state: {predecessors}}
+#         predec_dic = {}
+#         for state in self.mdp.getStates():
+#             predec_dic[state] = set()
+
+#         #fill the dictionary with predecessors
+#         pq = util.PriorityQueue()
+#         for state in self.mdp.getStates():
+#             if self.mdp.isTerminal(state) == True: continue #terminate states will not be an predecessor
+#             actions = self.mdp.getPossibleActions(state)
+#             for act in actions:
+#                 for next_state, prob in self.mdp.getTransitionStatesAndProbs(state, act):
+#                     predec_dic[next_state].add(state)
+
+#             #push the difference for state value change on the priorityQueue
+#             maxQ = max([self.getQValue(state, act) for act in actions])
+#             diff = abs(self.values[state] - maxQ)
+#             pq.push(state,-diff)
+
+#         #update the state values according to priority
+#         for i in range(self.iterations):
+#             if pq.isEmpty() == True: break
+#             s = pq.pop()
+#             actions = self.mdp.getPossibleActions(s)
+#             self.values[s] = max([self.getQValue(s, act) for act in actions])
+#             for p in predec_dic[s]:
+#                 actions = self.mdp.getPossibleActions(p)
+#                 diff = abs(self.values[p] - max([self.getQValue(p, act) for act in actions]))
+#                 if diff > self.theta:
+#                     pq.update(p ,-diff)
+###

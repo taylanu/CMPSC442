@@ -11,12 +11,7 @@ qlearningAgents.py
 analysis.py
 
 # TODO:
-- Q5 (Come back to it)
-- Q6 (done)
-- Q7
-- Q8
-- Q9
-- Q10
+- Q5*
 
 ## Activate Conda Environment
 1. conda create --name <env-name> python=3.6

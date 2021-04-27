@@ -11,6 +11,8 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
+# Typeshed import causing errors.
+# from _typeshed import SupportsItemAccess
 
 import itertools
 import random
@@ -390,7 +392,6 @@ class ParticleFilter(InferenceModule):
         Sample each particle's next state based on its current state and the
         gameState.
         """
-
         self.particles = [self.getPositionDistribution(gameState, particle).sample() for particle in self.particles]
 
     def getBeliefDistribution(self):
@@ -408,7 +409,7 @@ class ParticleFilter(InferenceModule):
         beliefDistribution.normalize()
         return beliefDistribution
 
-
+# Project4 Question8/9/10
 class JointParticleFilter(ParticleFilter):
     """
     JointParticleFilter tracks a joint distribution over tuples of all ghost
@@ -426,6 +427,7 @@ class JointParticleFilter(ParticleFilter):
         self.legalPositions = legalPositions
         self.initializeUniformly(gameState)
 
+    # Project4 Question8
     def initializeUniformly(self, gameState):
         """
         Initialize particles to be consistent with a uniform prior. Particles
@@ -433,8 +435,11 @@ class JointParticleFilter(ParticleFilter):
         uniform prior.
         """
         self.particles = []
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        # Creates list of cartesian products of legalPositions and numGhosts (in Document)
+        samples = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
+        random.shuffle(samples)
+        self.particles = samples[0 : self.numParticles]
 
     def addGhostAgent(self, agent):
         """
@@ -454,6 +459,7 @@ class JointParticleFilter(ParticleFilter):
         observation = gameState.getNoisyGhostDistances()
         self.observeUpdate(observation, gameState)
 
+    # Project4 Question9
     def observeUpdate(self, observation, gameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
@@ -466,9 +472,26 @@ class JointParticleFilter(ParticleFilter):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
 
+        pacmanPos = gameState.getPacmanPosition()
+        ghostStates = list(itertools.product(self.legalPositions, repeat=self.numGhosts))
+        beliefs = self.getBeliefDistribution()
+
+        for state in ghostStates:
+            for i in range(self.numGhosts):
+                jailPos = self.getJailPosition(i)
+                observation_i = observation[i]
+                ghostPos = state[i]
+                beliefs[state] *= self.getObservationProb(observation_i, pacmanPos, ghostPos, jailPos)
+        beliefs.normalize()
+
+        # SPECIAL CASE, reinitialize using initializeUniformly
+        if beliefs.total() == 0:
+            self.initializeUniformly(gameState)
+        else:
+            self.particles = [beliefs.sample() for _ in range(self.numParticles)]
+
+    # Project4 Question10
     def elapseTime(self, gameState):
         """
         Sample each particle's next state based on its current state and the
@@ -480,12 +503,10 @@ class JointParticleFilter(ParticleFilter):
 
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
-            raiseNotDefined()
-
+            newParticle = [self.getPositionDistribution(gameState, oldParticle, i, self.ghostAgents[i]).sample() for i in range(self.numGhosts)]
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
-
 
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()

@@ -1,13 +1,6 @@
 ## Project4 CMPSC442
 ## Due: April 25th @ Midnight
 
-## TODO
-- Q6 (done)
-- Q7 (done)
-- Q8
-- Q9
-- Q10
-
 ## Files to Edit:
 - busterAgents.py
 - inference.py

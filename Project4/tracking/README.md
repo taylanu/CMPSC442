@@ -2,10 +2,8 @@
 ## Due: April 25th @ Midnight
 
 ## TODO
-- Q4
-- Q5
-- Q6
-- Q7
+- Q6 (done)
+- Q7 (done)
 - Q8
 - Q9
 - Q10

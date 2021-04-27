@@ -297,7 +297,7 @@ class ExactInference(InferenceModule):
         position is known.
         """
 
-        self.beliefs.normalize()
+        # self.beliefs.normalize()
         pacmanPos, jailPos = gameState.getPacmanPosition(), self.getJailPosition()
         for ghostPos in self.allPositions:
             prob = self.getObservationProb(observation, pacmanPos, ghostPos, jailPos)
@@ -315,17 +315,13 @@ class ExactInference(InferenceModule):
         current position is known.
         """
 
-        # Save previous beliefs, then clear
-        prevDist = self.beliefs.copy()
-        self.beliefs.copy()
-
-        for oldPos in self.allPositions:
-            if prevDist[oldPos] == 0:
-                continue
-            newPosDist = self.getPositionDistribution(gameState, oldPos)
-            for pos in self.allPositions:
-                self.beliefs[pos] += newPosDist[pos] * prevDist[oldPos]
-        self.beliefs.normalize()
+        newProb = DiscreteDistribution()
+        for position in self.allPositions:
+            newPosDist = self.getPositionDistribution(gameState, position)
+            for pos in newPosDist:
+                newProb[pos] += newPosDist[pos] * self.beliefs[position]
+        newProb.normalize()
+        self.beliefs = newProb
 
     def getBeliefDistribution(self):
         return self.beliefs
@@ -342,6 +338,7 @@ class ParticleFilter(InferenceModule):
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles
 
+    # Project4 Question6
     def initializeUniformly(self, gameState):
         """
         Initialize a list of particles. Use self.numParticles for the number of
@@ -351,9 +348,14 @@ class ParticleFilter(InferenceModule):
         self.particles for the list of particles.
         """
         self.particles = []
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
 
+        # For each particle, append to particles list, then evenly distribute the particles to ensure uniformity.
+        for i in range(self.numParticles):
+            self.particles.append(self.legalPositions[i%len(self.legalPositions)])
+        random.shuffle(self.particles)
+
+    # Project4 Question6
+    # Note: When all particles recieve zero weight, list of particles should be reinitialized by calling initializeUniformly()
     def observeUpdate(self, observation, gameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
@@ -366,16 +368,30 @@ class ParticleFilter(InferenceModule):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
 
+        pacmanPos = gameState.getPacmanPosition()
+        jailPos = self.getJailPosition()
+        beliefs = self.getBeliefDistribution()
+
+        for ghostPos in self.allPositions:
+            beliefs[ghostPos] *= self.getObservationProb(observation, pacmanPos, ghostPos, jailPos)
+
+        # SPECIAL CASE, if beliefs empty, reinitialize paricles using initializeUniformly.
+        if beliefs.total() == 0:
+            self.initializeUniformly(gameState)
+            return
+        beliefs.normalize()
+        self.particles = [beliefs.sample() for _ in range(self.numParticles)]
+
+
+    # Project4 Question7
     def elapseTime(self, gameState):
         """
         Sample each particle's next state based on its current state and the
         gameState.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        self.particles = [self.getPositionDistribution(gameState, particle).sample() for particle in self.particles]
 
     def getBeliefDistribution(self):
         """
@@ -385,8 +401,12 @@ class ParticleFilter(InferenceModule):
 
         This function should return a normalized distribution.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        beliefDistribution = DiscreteDistribution()
+        for particle in self.particles:
+            beliefDistribution[particle] += 1
+        beliefDistribution.normalize()
+        return beliefDistribution
 
 
 class JointParticleFilter(ParticleFilter):

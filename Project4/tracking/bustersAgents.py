@@ -145,6 +145,25 @@ class GreedyBustersAgent(BustersAgent):
         # Defines a list of util.Counter objects with the position belief valus for each alive ghost.
         livingGhostPositionDistributions = [beliefs for i, beliefs in enumerate(self.ghostBeliefs) if livingGhosts[i+1]]
 
+        # targets = [ghost_position.argMax() for ghost_position in livingGhostPositionDistributions]
+        activeGhosts = [ghost_position.argMax() for ghost_position in livingGhostPositionDistributions]
+        ghostDistances = util.Counter()
+        closestTarget = activeGhosts[0]
+
+        for ghost in activeGhosts:
+            ghostDistances[ghost] = self.distancer.getDistance(pacmanPosition, ghost)
+            if ghostDistances[closestTarget] > ghostDistances[ghost]:
+                closestTarget = ghost
+
+        action_distances = util.Counter()
+        bestAction = legal[0]
+        for action in legal:
+            newPos = Actions.getSuccessor(pacmanPosition, action)
+            action_distances[action] = self.distancer.getDistance(newPos, closestTarget)
+            if action_distances[bestAction] > action_distances[action]:
+                bestAction = action
+        return bestAction
+
         # Calculates the minimum distance to the next living Ghost.
         minDist = float("inf")
         for belief in livingGhostPositionDistributions:

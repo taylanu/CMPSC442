@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -131,6 +131,7 @@ class GreedyBustersAgent(BustersAgent):
         BustersAgent.registerInitialState(self, gameState)
         self.distancer = Distancer(gameState.data.layout, False)
 
+    # Project4 Question4
     def chooseAction(self, gameState):
         """
         First computes the most likely position of each ghost that has
@@ -140,7 +141,25 @@ class GreedyBustersAgent(BustersAgent):
         pacmanPosition = gameState.getPacmanPosition()
         legal = [a for a in gameState.getLegalPacmanActions()]
         livingGhosts = gameState.getLivingGhosts()
-        livingGhostPositionDistributions = \
-            [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
-             if livingGhosts[i+1]]
-        "*** YOUR CODE HERE ***"
+
+        # Defines a list of util.Counter objects with the position belief valus for each alive ghost.
+        livingGhostPositionDistributions = [beliefs for i, beliefs in enumerate(self.ghostBeliefs) if livingGhosts[i+1]]
+
+        # Calculates the minimum distance to the next living Ghost.
+        minDist = float("inf")
+        for belief in livingGhostPositionDistributions:
+            distance = self.distancer.getDistance(belief.argMax(), pacmanPosition)
+            if distance < minDist:
+                minDist = distance
+                minPos = belief.argMax()
+
+        # Calculates the best action to take given legal actions
+        for action in legal:
+            nextAction = Actions.getSuccessor(pacmanPosition, action)
+            distance = self.distancer.getDistance(minPos, nextAction)
+            if distance < minDist:
+                minDist = distance
+                minAction = action
+
+        return minAction
+

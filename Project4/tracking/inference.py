@@ -19,7 +19,6 @@ import game
 
 from util import manhattanDistance, raiseNotDefined
 
-
 class DiscreteDistribution(dict):
     """
     A DiscreteDistribution models belief distributions and weight distributions
@@ -52,6 +51,7 @@ class DiscreteDistribution(dict):
         """
         return float(sum(self.values()))
 
+    ## Project4 Question0
     def normalize(self):
         """
         Normalize the distribution such that the total value of all keys sums
@@ -74,9 +74,14 @@ class DiscreteDistribution(dict):
         >>> empty
         {}
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
 
+        # Normalizes each value in set of elements by dividing by total.
+        total = self.total()
+        if (self.keys() is not None) and (total != 0):
+            for key in self:
+                self[key] /= total
+
+    # Project4 Question0
     def sample(self):
         """
         Draw a random sample from the distribution and return the key, weighted
@@ -98,9 +103,15 @@ class DiscreteDistribution(dict):
         >>> round(samples.count('d') * 1.0/N, 1)
         0.0
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
 
+        # Draw a sample from the distribution
+        # Note: Assume distribution not empty, not all values are zero.
+        prob = random.random() * self.total()
+        sum = 0
+        for key in self:
+            if sum + self[key] > prob:
+                return key
+            sum += self[key]
 
 class InferenceModule:
     """
@@ -164,12 +175,20 @@ class InferenceModule:
             agent = self.ghostAgent
         return self.getPositionDistributionHelper(gameState, pos, index, agent)
 
+    # Project4 Question1
     def getObservationProb(self, noisyDistance, pacmanPosition, ghostPosition, jailPosition):
         """
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        if (noisyDistance is None) and (ghostPosition == jailPosition):
+            return 1
+        if (noisyDistance is not None) and (ghostPosition == jailPosition):
+            return 0
+        # Main case, handles finding distance to ghost given observation
+        if (noisyDistance is not None) and (ghostPosition != jailPosition):
+            distance = manhattanDistance(pacmanPosition, ghostPosition)
+            return busters.getObservationProbability(noisyDistance, distance)
+        return 0 ## endcase if no other cases hit
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
@@ -261,6 +280,7 @@ class ExactInference(InferenceModule):
             self.beliefs[p] = 1.0
         self.beliefs.normalize()
 
+    # Project4 Question2
     def observeUpdate(self, observation, gameState):
         """
         Update beliefs based on the distance observation and Pacman's position.
@@ -276,11 +296,15 @@ class ExactInference(InferenceModule):
         current position. However, this is not a problem, as Pacman's current
         position is known.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
 
         self.beliefs.normalize()
+        pacmanPos, jailPos = gameState.getPacmanPosition(), self.getJailPosition()
+        for ghostPos in self.allPositions:
+            prob = self.getObservationProb(observation, pacmanPos, ghostPos, jailPos)
+            self.beliefs[ghostPos] *= prob
+        self.beliefs.normalize()
 
+    # Project4 Question3
     def elapseTime(self, gameState):
         """
         Predict beliefs in response to a time step passing from the current
@@ -290,13 +314,23 @@ class ExactInference(InferenceModule):
         Pacman's current position. However, this is not a problem, as Pacman's
         current position is known.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        # Save previous beliefs, then clear
+        prevDist = self.beliefs.copy()
+        self.beliefs.copy()
+
+        for oldPos in self.allPositions:
+            if prevDist[oldPos] == 0:
+                continue
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            for pos in self.allPositions:
+                self.beliefs[pos] += newPosDist[pos] * prevDist[oldPos]
+        self.beliefs.normalize()
 
     def getBeliefDistribution(self):
         return self.beliefs
 
-
+# Project4 Question 6
 class ParticleFilter(InferenceModule):
     """
     A particle filter for approximately tracking a single ghost.
